@@ -1,0 +1,1 @@
+export BOOKSTORE_DB_DSN='postgres://bookstore:pa55word@localhost/bookstore?sslmode=disable'
