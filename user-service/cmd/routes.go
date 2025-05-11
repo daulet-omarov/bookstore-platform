@@ -12,9 +12,9 @@ func (app *application) routes() *httprouter.Router {
 	router.MethodNotAllowed = http.HandlerFunc(app.methodNotAllowedResponse)
 
 	router.HandlerFunc(http.MethodPost, "/users", app.createUserHandler)
-	router.HandlerFunc(http.MethodGet, "/user/:id", app.showUserHandler)
-	router.HandlerFunc(http.MethodPut, "/user/:id", app.updateUserHandler)
-	router.HandlerFunc(http.MethodPost, "/user/authenticate", app.authenticateUserHandler)
+	router.HandlerFunc(http.MethodGet, "/users/:id", app.showUserHandler)
+	router.HandlerFunc(http.MethodPut, "/users/:id", app.updateUserHandler)
+	router.HandlerFunc(http.MethodPost, "/users/authenticate", app.authenticateUserHandler)
 
 	return router
 }

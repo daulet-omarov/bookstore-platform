@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/go-playground/form/v4"
 	"github.com/julienschmidt/httprouter"
 	"io"
 	"net/http"
@@ -78,24 +77,6 @@ func (app *application) readJSON(w http.ResponseWriter, r *http.Request, dst any
 	err = dec.Decode(&struct{}{})
 	if err != io.EOF {
 		return errors.New("body must only contain a single JSON value")
-	}
-
-	return nil
-}
-
-func (app *application) decodePostForm(r *http.Request, dst any) error {
-	err := r.ParseForm()
-	if err != nil {
-		return err
-	}
-
-	err = app.formDecoder.Decode(dst, r.PostForm)
-	if err != nil {
-		var invalidDecoderError *form.InvalidDecoderError
-		if errors.As(err, &invalidDecoderError) {
-			panic(err)
-		}
-		return err
 	}
 
 	return nil

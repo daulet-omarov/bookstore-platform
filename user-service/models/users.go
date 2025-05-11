@@ -21,7 +21,7 @@ type UserModel struct {
 
 func (m UserModel) Insert(user *User) error {
 	query := `
-		INSERT INTO users (username, email, passwrod)
+		INSERT INTO users (username, email, password)
 		VALUES ($1, $2, $3)
 		RETURNING id, created`
 
@@ -118,7 +118,7 @@ func (m UserModel) Authenticate(email, password string) (*User, error) {
 
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, sql.ErrNoRows
+			return nil, errors.New("invalid email")
 		} else {
 			return nil, err
 		}

@@ -4,43 +4,42 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"github.com/daulet-omarov/user-service/models"
 	"net/http"
 )
 
 func (app *application) createUserHandler(w http.ResponseWriter, r *http.Request) {
-	//var input struct {
-	//	Username string `json:"username"`
-	//	Email    string `json:"email"`
-	//	Password string `json:"password"`
-	//}
+	var input struct {
+		Username string `json:"username"`
+		Email    string `json:"email"`
+		Password string `json:"password"`
+	}
 
-	fmt.Fprintf(w, "Create user")
+	err := app.readJSON(w, r, &input)
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
 
-	//err := app.readJSON(w, r, &input)
-	//if err != nil {
-	//	app.badRequestResponse(w, r, err)
-	//	return
-	//}
-	//
-	//user := &models.User{
-	//	Username: input.Username,
-	//	Email:    input.Email,
-	//	Password: input.Password,
-	//}
-	//
-	//err = app.users.Insert(user)
-	//if err != nil {
-	//	app.serverErrorResponse(w, r, err)
-	//	return
-	//}
-	//
-	//headers := make(http.Header)
-	//headers.Set("Location", fmt.Sprintf("/users/%d", user.ID))
-	//
-	//err = app.writeJSON(w, http.StatusCreated, envelope{"user": user}, headers)
-	//if err != nil {
-	//	app.serverErrorResponse(w, r, err)
-	//}
+	user := &models.User{
+		Username: input.Username,
+		Email:    input.Email,
+		Password: input.Password,
+	}
+
+	err = app.users.Insert(user)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	headers := make(http.Header)
+	headers.Set("Location", fmt.Sprintf("/users/%d", user.ID))
+
+	err = app.writeJSON(w, http.StatusCreated, envelope{"user": user}, headers)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+	}
 }
 
 func (app *application) showUserHandler(w http.ResponseWriter, r *http.Request) {
@@ -127,7 +126,14 @@ func (app *application) authenticateUserHandler(w http.ResponseWriter, r *http.R
 
 	user, err := app.users.Authenticate(input.Email, input.Password)
 	if err != nil {
-		app.serverErrorResponse(w, r, err)
+		switch {
+		case err.Error() == "invalid email":
+			app.badRequestResponse(w, r, err)
+		case err.Error() == "invalid password":
+			app.badRequestResponse(w, r, err)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
 		return
 	}
 
