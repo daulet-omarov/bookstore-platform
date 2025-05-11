@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"flag"
 	"fmt"
-	"github.com/daulet-omarov/book-service/models"
+	"github.com/daulet-omarov/user-service/models"
 	_ "github.com/lib/pq"
 	"log"
 	"net/http"
@@ -27,7 +27,7 @@ type config struct {
 type application struct {
 	config config
 	logger *log.Logger
-	books  models.UserModel
+	users  models.UserModel
 }
 
 func main() {
@@ -56,7 +56,7 @@ func main() {
 	app := &application{
 		config: cfg,
 		logger: logger,
-		books:  models.UserModel{DB: db},
+		users:  models.UserModel{DB: db},
 	}
 
 	srv := &http.Server{

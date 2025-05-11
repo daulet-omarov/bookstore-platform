@@ -1,4 +1,4 @@
-module github.com/daulet-omarov/book-service
+module github.com/daulet-omarov/user-service
 
 go 1.23.9
 
