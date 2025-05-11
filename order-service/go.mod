@@ -1,0 +1,1 @@
+module github.com/daulet-omarov/book-service
