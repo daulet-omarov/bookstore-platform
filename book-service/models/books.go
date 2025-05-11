@@ -14,6 +14,7 @@ type Book struct {
 	Price     int64     `json:"price"`
 	Stock     int64     `json:"stock"`
 	ISBN      string    `json:"isbn"`
+	Image     string    `json:"image"`
 	CreatedAt time.Time `json:"-"`
 }
 
@@ -23,11 +24,11 @@ type BookModel struct {
 
 func (m BookModel) Insert(book *Book) error {
 	query := `
-		INSERT INTO books (title, author, price, stock, isbn)
-		VALUES ($1, $2, $3, $4, $5)
+		INSERT INTO books (title, author, price, stock, isbn, image)
+		VALUES ($1, $2, $3, $4, $5, $6)
 		RETURNING id, created_at`
 
-	args := []any{book.Title, book.Author, book.Price, book.Stock, book.ISBN}
+	args := []any{book.Title, book.Author, book.Price, book.Stock, book.ISBN, book.Image}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
@@ -41,7 +42,7 @@ func (m BookModel) Get(id int64) (*Book, error) {
 	}
 
 	query := `
-		SELECT id, title, author, price, stock, isbn, created_at
+		SELECT id, title, author, price, stock, isbn, image, created_at
 		FROM books
 		WHERE id = $1`
 
@@ -57,6 +58,7 @@ func (m BookModel) Get(id int64) (*Book, error) {
 		&book.Price,
 		&book.Stock,
 		&book.ISBN,
+		&book.Image,
 		&book.CreatedAt,
 	)
 
@@ -74,8 +76,8 @@ func (m BookModel) Get(id int64) (*Book, error) {
 func (m BookModel) Update(book *Book) error {
 	query := `
 		UPDATE books
-		SET title = $1, author = $2, price = $3, stock = $4, isbn = $5
-		WHERE id = $6`
+		SET title = $1, author = $2, price = $3, stock = $4, isbn = $5, image = $6
+		WHERE id = $7`
 
 	args := []any{
 		book.Title,
@@ -83,6 +85,7 @@ func (m BookModel) Update(book *Book) error {
 		book.Price,
 		book.Stock,
 		book.ISBN,
+		book.Image,
 		book.ID,
 	}
 
@@ -133,7 +136,7 @@ func (m BookModel) Delete(id int64) error {
 
 func (m BookModel) GetAll() ([]*Book, error) {
 	query := `
-		SELECT id, title, author, price, stock, isbn, created_at
+		SELECT id, title, author, price, stock, isbn, image, created_at
 		FROM books
 		ORDER BY id`
 
@@ -156,6 +159,7 @@ func (m BookModel) GetAll() ([]*Book, error) {
 			&book.Price,
 			&book.Stock,
 			&book.ISBN,
+			&book.Image,
 			&book.CreatedAt,
 		)
 		if err != nil {

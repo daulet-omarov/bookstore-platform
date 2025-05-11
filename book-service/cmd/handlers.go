@@ -28,6 +28,7 @@ func (app *application) createBookHandler(w http.ResponseWriter, r *http.Request
 		Price  int64  `json:"price"`
 		Stock  int64  `json:"stock"`
 		ISBN   string `json:"isbn"`
+		Image  string `json:"image"`
 	}
 
 	err := app.readJSON(w, r, &input)
@@ -42,6 +43,7 @@ func (app *application) createBookHandler(w http.ResponseWriter, r *http.Request
 		Price:  input.Price,
 		Stock:  input.Stock,
 		ISBN:   input.ISBN,
+		Image:  input.Image,
 	}
 
 	err = app.books.Insert(book)
@@ -107,6 +109,7 @@ func (app *application) updateBookHandler(w http.ResponseWriter, r *http.Request
 		Price  int64  `json:"price"`
 		Stock  int64  `json:"stock"`
 		ISBN   string `json:"isbn"`
+		Image  string `json:"image"`
 	}
 
 	err = app.readJSON(w, r, &input)
@@ -120,6 +123,7 @@ func (app *application) updateBookHandler(w http.ResponseWriter, r *http.Request
 	book.Price = input.Price
 	book.Stock = input.Stock
 	book.ISBN = input.ISBN
+	book.Image = input.Image
 
 	err = app.books.Update(book)
 	if err != nil {
