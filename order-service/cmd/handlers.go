@@ -131,3 +131,27 @@ func (app *application) deleteOrderHandler(w http.ResponseWriter, r *http.Reques
 		app.serverErrorResponse(w, r, err)
 	}
 }
+
+func (app *application) showUserOrderHandler(w http.ResponseWriter, r *http.Request) {
+	id, err := app.readIDParam(r)
+	if err != nil || id < 1 {
+		app.notFoundResponse(w, r)
+		return
+	}
+
+	orders, err := app.orders.GetByUserID(id)
+	if err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			app.notFoundResponse(w, r)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+
+	err = app.writeJSON(w, http.StatusOK, envelope{"orders": orders}, nil)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+	}
+}

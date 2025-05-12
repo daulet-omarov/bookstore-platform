@@ -15,6 +15,7 @@ func (app *application) routes() *httprouter.Router {
 	router.HandlerFunc(http.MethodGet, "/orders/:id", app.showOrderHandler)
 	router.HandlerFunc(http.MethodPut, "/orders/:id", app.updateOrderHandler)
 	router.HandlerFunc(http.MethodDelete, "/orders/:id", app.deleteOrderHandler)
+	router.HandlerFunc(http.MethodGet, "/users/:id/orders", app.showUserOrderHandler)
 
 	return router
 }

@@ -121,3 +121,45 @@ func (m OrderModel) Delete(id int64) error {
 
 	return nil
 }
+
+func (m OrderModel) GetByUserID(userID int64) ([]*Order, error) {
+	query := `
+		SELECT id, user_id, book_id, created_at
+		FROM orders
+		WHERE user_id = $1`
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	rows, err := m.DB.QueryContext(ctx, query, userID)
+	if err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return nil, sql.ErrNoRows
+		default:
+			return nil, err
+		}
+	}
+	defer rows.Close()
+
+	var orders []*Order
+	for rows.Next() {
+		var order Order
+		err = rows.Scan(
+			&order.ID,
+			&order.UserID,
+			&order.BookID,
+			&order.CreatedAt,
+		)
+		if err != nil {
+			return nil, err
+		}
+		orders = append(orders, &order)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return orders, nil
+}
