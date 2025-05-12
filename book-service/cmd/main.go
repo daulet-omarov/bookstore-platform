@@ -6,12 +6,53 @@ import (
 	"flag"
 	"fmt"
 	"github.com/daulet-omarov/book-service/models"
+	"github.com/daulet-omarov/bookstore-platform/your-module-path/bookpb"
 	_ "github.com/lib/pq"
+	"google.golang.org/grpc"
 	"log"
+	"net"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 )
+
+type bookServer struct {
+	bookpb.UnimplementedBookServiceServer
+	books models.BookModel
+}
+
+func (s *bookServer) CheckBook(ctx context.Context, req *bookpb.BookRequest) (*bookpb.BookResponse, error) {
+	// Lookup book in DB
+	id, err := strconv.ParseInt(req.BookId, 10, 64)
+	if err != nil {
+		return nil, err
+	}
+	book, err := s.books.Get(id)
+	if err != nil {
+		return nil, err
+	}
+	return &bookpb.BookResponse{
+		Available: book.Stock > 0,
+		Title:     book.Title,
+		Quantity:  int32(book.Stock),
+	}, nil
+}
+
+func (s *bookServer) UpdateBook(ctx context.Context, req *bookpb.UpdateRequest) (*bookpb.UpdateResponse, error) {
+	// Update quantity in DB
+	id, err := strconv.ParseInt(req.BookId, 10, 64)
+	if err != nil {
+		return nil, err
+	}
+	book, err := s.books.Get(id)
+	if err != nil {
+		return nil, err
+	}
+	book.Stock = book.Stock - int64(req.Delta)
+	success := s.books.Update(book) == nil
+	return &bookpb.UpdateResponse{Success: success}, nil
+}
 
 type config struct {
 	port int
@@ -67,9 +108,26 @@ func main() {
 		WriteTimeout: 30 * time.Second,
 	}
 
-	logger.Printf("starting %s server on %d", cfg.env, cfg.port)
-	err = srv.ListenAndServe()
-	logger.Fatal(err)
+	go func() {
+		logger.Printf("starting %s server on %d", cfg.env, cfg.port)
+		err = srv.ListenAndServe()
+		logger.Fatal(err)
+	}()
+
+	// Listen on port 50051
+	lis, err := net.Listen("tcp", ":50051")
+	if err != nil {
+		log.Fatalf("failed to listen: %v", err)
+	}
+
+	// Create gRPC server
+	grpcServer := grpc.NewServer()
+	bookpb.RegisterBookServiceServer(grpcServer, &bookServer{books: models.BookModel{DB: db}})
+
+	log.Println("BookService gRPC server running on :50051")
+	if err := grpcServer.Serve(lis); err != nil {
+		log.Fatalf("failed to serve: %v", err)
+	}
 }
 
 func openDB(cfg config) (*sql.DB, error) {

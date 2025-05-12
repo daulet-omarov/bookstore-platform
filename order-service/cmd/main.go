@@ -5,8 +5,10 @@ import (
 	"database/sql"
 	"flag"
 	"fmt"
+	"github.com/daulet-omarov/bookstore-platform/your-module-path/bookpb"
 	"github.com/daulet-omarov/order-service/models"
 	_ "github.com/lib/pq"
+	"google.golang.org/grpc"
 	"log"
 	"net/http"
 	"os"
@@ -53,10 +55,18 @@ func main() {
 
 	logger.Printf("database connection pool established")
 
+	conn, err := grpc.Dial("localhost:50051", grpc.WithInsecure()) // use WithTransportCredentials in production
+	if err != nil {
+		log.Fatalf("failed to connect: %v", err)
+	}
+	defer conn.Close()
+
+	client := bookpb.NewBookServiceClient(conn)
+
 	app := &application{
 		config: cfg,
 		logger: logger,
-		orders: models.OrderModel{DB: db},
+		orders: models.OrderModel{DB: db, Client: client},
 	}
 
 	srv := &http.Server{

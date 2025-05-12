@@ -1,3 +1,5 @@
+github.com/daulet-omarov/bookstore-platform v0.0.0-20250512202334-4128660602e6 h1:WerlZm1qQEK/T01TR2O9VblzYb0OJ5BRwLfr/f+OsUE=
+github.com/daulet-omarov/bookstore-platform v0.0.0-20250512202334-4128660602e6/go.mod h1:jjAmXjbKtm+uvhcoglCMoVjJq2YK8x50s+J+Gt5cWAE=
 github.com/julienschmidt/httprouter v1.3.0 h1:U0609e9tgbseu3rBINet9P48AI/D3oJs4dN7jwJOQ1U=
 github.com/julienschmidt/httprouter v1.3.0/go.mod h1:JR6WtHb+2LUe8TCKY3cZOxFyyO8IZAc4RVcycCCAKdM=
 github.com/lib/pq v1.10.9 h1:YXG7RB+JIjhP29X+OtkiDnYaXQwpS4JEWq7dtCCRUEw=

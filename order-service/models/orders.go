@@ -4,6 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"github.com/daulet-omarov/bookstore-platform/your-module-path/bookpb"
+	"strconv"
 	"time"
 )
 
@@ -15,10 +17,27 @@ type Order struct {
 }
 
 type OrderModel struct {
-	DB *sql.DB
+	DB     *sql.DB
+	Client bookpb.BookServiceClient
 }
 
 func (m OrderModel) Insert(order *Order) error {
+	bookId := strconv.FormatInt(order.BookID, 10)
+	bookRes, err := m.Client.CheckBook(context.Background(), &bookpb.BookRequest{BookId: bookId})
+	if err != nil {
+		return err
+	}
+	if !bookRes.Available {
+		return errors.New("book is not available")
+	}
+	updateRes, err := m.Client.UpdateBook(context.Background(), &bookpb.UpdateRequest{BookId: bookId, Delta: 1})
+	if err != nil {
+		return err
+	}
+	if !updateRes.Success {
+		return errors.New("failed to update book")
+	}
+
 	query := `
 		INSERT INTO orders (user_id, book_id)
 		VALUES ($1, $2)
