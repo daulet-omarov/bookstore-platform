@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+package book;
+
+option go_package = "your-module-path/bookpb";
+
+service BookService {
+  rpc CheckBook (BookRequest) returns (BookResponse);
+  rpc UpdateBook (UpdateRequest) returns (UpdateResponse);
+}
+
+message BookRequest {
+  string book_id = 1;
+}
+
+message BookResponse {
+  bool available = 1;
+  string title = 2;
+  int32 quantity = 3;
+}
+
+message UpdateRequest {
+  string book_id = 1;
+  int32 delta = 2; // e.g. -1 to reduce quantity by 1
+}
+
+message UpdateResponse {
+  bool success = 1;
+}
