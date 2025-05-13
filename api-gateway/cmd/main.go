@@ -34,11 +34,32 @@ func main() {
 }
 
 func proxyRequest(target string, w http.ResponseWriter, r *http.Request) {
-	resp, err := http.Get(target + r.URL.Path)
+	// Create a new request with the same method, URL, and body
+	req, err := http.NewRequest(r.Method, target+r.URL.Path, r.Body)
+	if err != nil {
+		http.Error(w, "Failed to create request", http.StatusInternalServerError)
+		return
+	}
+
+	// Copy headers from the original request
+	req.Header = r.Header
+
+	// Send the request using http.DefaultClient
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		http.Error(w, "Service unavailable", http.StatusServiceUnavailable)
 		return
 	}
 	defer resp.Body.Close()
+
+	// Copy response headers and status code
+	for key, values := range resp.Header {
+		for _, value := range values {
+			w.Header().Add(key, value)
+		}
+	}
+	w.WriteHeader(resp.StatusCode)
+
+	// Copy the response body
 	io.Copy(w, resp.Body)
 }

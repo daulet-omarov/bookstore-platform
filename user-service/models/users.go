@@ -96,24 +96,29 @@ func (m UserModel) Update(user *User) error {
 	return nil
 }
 
-func (m UserModel) Authenticate(email, password string) (*User, error) {
+func (m UserModel) Authenticate(user *User) (*User, error) {
 	query := `
-		SELECT id, password
+		SELECT id, username, password, created
 		FROM users
 		WHERE email = $1`
 
 	args := []any{
-		email,
+		user.Email,
 	}
-
-	var user User
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
+	var userID int
+	var username string
+	var password string
+	var created time.Time
+
 	err := m.DB.QueryRowContext(ctx, query, args...).Scan(
-		&user.ID,
-		&user.Password,
+		&userID,
+		&username,
+		&password,
+		&created,
 	)
 
 	if err != nil {
@@ -128,5 +133,10 @@ func (m UserModel) Authenticate(email, password string) (*User, error) {
 		return nil, errors.New("invalid password")
 	}
 
-	return &user, nil
+	user.ID = userID
+	user.Username = username
+	user.Password = password
+	user.Created = created
+
+	return user, nil
 }

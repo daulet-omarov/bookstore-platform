@@ -124,7 +124,11 @@ func (app *application) authenticateUserHandler(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	user, err := app.users.Authenticate(input.Email, input.Password)
+	var user models.User
+	user.Email = input.Email
+	user.Password = input.Password
+
+	_, err = app.users.Authenticate(&user)
 	if err != nil {
 		switch {
 		case err.Error() == "invalid email":
