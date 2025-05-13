@@ -17,43 +17,6 @@ import (
 	"time"
 )
 
-type bookServer struct {
-	bookpb.UnimplementedBookServiceServer
-	books models.BookModel
-}
-
-func (s *bookServer) CheckBook(ctx context.Context, req *bookpb.BookRequest) (*bookpb.BookResponse, error) {
-	// Lookup book in DB
-	id, err := strconv.ParseInt(req.BookId, 10, 64)
-	if err != nil {
-		return nil, err
-	}
-	book, err := s.books.Get(id)
-	if err != nil {
-		return nil, err
-	}
-	return &bookpb.BookResponse{
-		Available: book.Stock > 0,
-		Title:     book.Title,
-		Quantity:  int32(book.Stock),
-	}, nil
-}
-
-func (s *bookServer) UpdateBook(ctx context.Context, req *bookpb.UpdateRequest) (*bookpb.UpdateResponse, error) {
-	// Update quantity in DB
-	id, err := strconv.ParseInt(req.BookId, 10, 64)
-	if err != nil {
-		return nil, err
-	}
-	book, err := s.books.Get(id)
-	if err != nil {
-		return nil, err
-	}
-	book.Stock = book.Stock - int64(req.Delta)
-	success := s.books.Update(book) == nil
-	return &bookpb.UpdateResponse{Success: success}, nil
-}
-
 type config struct {
 	port int
 	env  string
@@ -114,13 +77,11 @@ func main() {
 		logger.Fatal(err)
 	}()
 
-	// Listen on port 50051
 	lis, err := net.Listen("tcp", ":50051")
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
 
-	// Create gRPC server
 	grpcServer := grpc.NewServer()
 	bookpb.RegisterBookServiceServer(grpcServer, &bookServer{books: models.BookModel{DB: db}})
 
@@ -153,4 +114,39 @@ func openDB(cfg config) (*sql.DB, error) {
 	}
 
 	return db, nil
+}
+
+type bookServer struct {
+	bookpb.UnimplementedBookServiceServer
+	books models.BookModel
+}
+
+func (s *bookServer) CheckBook(ctx context.Context, req *bookpb.BookRequest) (*bookpb.BookResponse, error) {
+	id, err := strconv.ParseInt(req.BookId, 10, 64)
+	if err != nil {
+		return nil, err
+	}
+	book, err := s.books.Get(id)
+	if err != nil {
+		return nil, err
+	}
+	return &bookpb.BookResponse{
+		Available: book.Stock > 0,
+		Title:     book.Title,
+		Quantity:  int32(book.Stock),
+	}, nil
+}
+
+func (s *bookServer) UpdateBook(ctx context.Context, req *bookpb.UpdateRequest) (*bookpb.UpdateResponse, error) {
+	id, err := strconv.ParseInt(req.BookId, 10, 64)
+	if err != nil {
+		return nil, err
+	}
+	book, err := s.books.Get(id)
+	if err != nil {
+		return nil, err
+	}
+	book.Stock = book.Stock - int64(req.Delta)
+	success := s.books.Update(book) == nil
+	return &bookpb.UpdateResponse{Success: success}, nil
 }
