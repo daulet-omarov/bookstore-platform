@@ -13,11 +13,9 @@ func main() {
 
 		switch {
 		case strings.HasPrefix(path, "/users") && strings.Contains(path, "/orders"):
-			// Example: /users/123/orders/
 			proxyRequest("http://localhost:8000", w, r)
 
 		case strings.HasPrefix(path, "/users"):
-			// Example: /users/, /users/123
 			proxyRequest("http://localhost:4000", w, r)
 
 		case strings.HasPrefix(path, "/books"):
