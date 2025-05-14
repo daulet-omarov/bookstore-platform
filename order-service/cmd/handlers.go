@@ -133,11 +133,12 @@ func (app *application) deleteOrderHandler(w http.ResponseWriter, r *http.Reques
 }
 
 func (app *application) showUserOrderHandler(w http.ResponseWriter, r *http.Request) {
-	id, err := app.readIDParam(r)
-	if err != nil || id < 1 {
-		app.notFoundResponse(w, r)
-		return
-	}
+	id := int64(app.sessionManager.GetInt(r.Context(), "authenticatedUserID"))
+	//id, err := app.readIDParam(r)
+	//if err != nil || id < 1 {
+	//	app.notFoundResponse(w, r)
+	//	return
+	//}
 
 	orders, err := app.orders.GetByUserID(id)
 	if err != nil {

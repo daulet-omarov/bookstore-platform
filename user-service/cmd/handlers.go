@@ -67,11 +67,12 @@ func (app *application) showUserHandler(w http.ResponseWriter, r *http.Request) 
 }
 
 func (app *application) updateUserHandler(w http.ResponseWriter, r *http.Request) {
-	id, err := app.readIDParam(r)
-	if err != nil || id < 1 {
-		app.notFoundResponse(w, r)
-		return
-	}
+	id := int64(app.sessionManager.GetInt(r.Context(), "authenticatedUserID"))
+	//id, err := app.readIDParam(r)
+	//if err != nil || id < 1 {
+	//	app.notFoundResponse(w, r)
+	//	return
+	//}
 
 	user, err := app.users.Get(id)
 	if err != nil {

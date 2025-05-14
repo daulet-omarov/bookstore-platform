@@ -19,7 +19,7 @@ func (app *application) routes() *httprouter.Router {
 	router.Handler(http.MethodPost, "/users/authenticate", dynamic.ThenFunc(app.authenticateUserHandler))
 
 	protected := dynamic.Append(app.requireAuthentication)
-	router.Handler(http.MethodPut, "/users/:id", protected.ThenFunc(app.updateUserHandler))
+	router.Handler(http.MethodPut, "/users/update", protected.ThenFunc(app.updateUserHandler))
 
 	return router
 }
