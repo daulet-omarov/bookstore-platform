@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"flag"
 	"fmt"
+	"github.com/alexedwards/scs/postgresstore"
+	"github.com/alexedwards/scs/v2"
 	"github.com/daulet-omarov/user-service/models"
 	_ "github.com/lib/pq"
 	"log"
@@ -25,9 +27,10 @@ type config struct {
 }
 
 type application struct {
-	config config
-	logger *log.Logger
-	users  models.UserModel
+	config         config
+	logger         *log.Logger
+	users          models.UserModel
+	sessionManager *scs.SessionManager
 }
 
 func main() {
@@ -53,10 +56,16 @@ func main() {
 
 	logger.Printf("database connection pool established")
 
+	sessionManager := scs.New()
+	sessionManager.Store = postgresstore.New(db)
+	sessionManager.Lifetime = 12 * time.Hour
+	sessionManager.Cookie.Secure = true
+
 	app := &application{
-		config: cfg,
-		logger: logger,
-		users:  models.UserModel{DB: db},
+		config:         cfg,
+		logger:         logger,
+		users:          models.UserModel{DB: db},
+		sessionManager: sessionManager,
 	}
 
 	srv := &http.Server{

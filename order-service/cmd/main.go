@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"flag"
 	"fmt"
+	"github.com/alexedwards/scs/postgresstore"
+	"github.com/alexedwards/scs/v2"
 	"github.com/daulet-omarov/bookstore-platform/your-module-path/bookpb"
 	"github.com/daulet-omarov/order-service/models"
 	_ "github.com/lib/pq"
@@ -27,9 +29,10 @@ type config struct {
 }
 
 type application struct {
-	config config
-	logger *log.Logger
-	orders models.OrderModel
+	config         config
+	logger         *log.Logger
+	orders         models.OrderModel
+	sessionManager *scs.SessionManager
 }
 
 func main() {
@@ -63,10 +66,16 @@ func main() {
 
 	client := bookpb.NewBookServiceClient(conn)
 
+	sessionManager := scs.New()
+	sessionManager.Store = postgresstore.New(db)
+	sessionManager.Lifetime = 12 * time.Hour
+	sessionManager.Cookie.Secure = true
+
 	app := &application{
-		config: cfg,
-		logger: logger,
-		orders: models.OrderModel{DB: db, Client: client},
+		config:         cfg,
+		logger:         logger,
+		orders:         models.OrderModel{DB: db, Client: client},
+		sessionManager: sessionManager,
 	}
 
 	srv := &http.Server{

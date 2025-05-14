@@ -141,6 +141,14 @@ func (app *application) authenticateUserHandler(w http.ResponseWriter, r *http.R
 		return
 	}
 
+	err = app.sessionManager.RenewToken(r.Context())
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	app.sessionManager.Put(r.Context(), "authenticatedUserID", user.ID)
+
 	headers := make(http.Header)
 	headers.Set("Location", fmt.Sprintf("/users/%d", user.ID))
 

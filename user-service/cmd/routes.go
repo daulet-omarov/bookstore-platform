@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/julienschmidt/httprouter"
+	"github.com/justinas/alice"
 	"net/http"
 )
 
@@ -11,10 +12,14 @@ func (app *application) routes() *httprouter.Router {
 	router.NotFound = http.HandlerFunc(app.notFoundResponse)
 	router.MethodNotAllowed = http.HandlerFunc(app.methodNotAllowedResponse)
 
-	router.HandlerFunc(http.MethodPost, "/users", app.createUserHandler)
-	router.HandlerFunc(http.MethodGet, "/users/:id", app.showUserHandler)
-	router.HandlerFunc(http.MethodPut, "/users/:id", app.updateUserHandler)
-	router.HandlerFunc(http.MethodPost, "/users/authenticate", app.authenticateUserHandler)
+	dynamic := alice.New(app.sessionManager.LoadAndSave, app.authenticate)
+
+	router.Handler(http.MethodPost, "/users", dynamic.ThenFunc(app.createUserHandler))
+	router.Handler(http.MethodGet, "/users/:id", dynamic.ThenFunc(app.showUserHandler))
+	router.Handler(http.MethodPost, "/users/authenticate", dynamic.ThenFunc(app.authenticateUserHandler))
+
+	protected := dynamic.Append(app.requireAuthentication)
+	router.Handler(http.MethodPut, "/users/:id", protected.ThenFunc(app.updateUserHandler))
 
 	return router
 }
